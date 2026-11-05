@@ -43,6 +43,11 @@ measurement of a live model on this dataset. Regenerate against a real model wit
 `python -m agent.record` — the numbers in this table will move, and that's the
 point of the harness.
 
+**Want to see all 32?** [`evals/REPORT.md`](evals/REPORT.md) is a generated
+walkthrough: every case with its question, the answer, the decision, and the
+exact violation that blocked it. Regenerate with `python -m evals.report` — a
+test fails if the committed report drifts from the dataset.
+
 ## One concrete failure
 
 Case `c030` — the question crosses two documents, the answer cites only one:

@@ -41,6 +41,15 @@ def test_metric_minimo(name):
     )
 
 
+def test_report_esta_atualizado():
+    """Relatório commitado fora de sincronia é pior que relatório nenhum."""
+    from evals.report import TARGET, build
+
+    assert TARGET.exists() and TARGET.read_text(encoding="utf-8") == build(), (
+        "evals/REPORT.md está desatualizado — rode `python -m evals.report`"
+    )
+
+
 def test_metric_action_promise_rate():
     assert METRICS["action_promise_rate"] <= THRESHOLDS["action_promise_rate"], (
         f"o agente prometeu ação em {METRICS['action_promise_rate']:.1%} dos casos "
