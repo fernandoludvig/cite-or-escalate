@@ -9,6 +9,7 @@ qualidade dele não é o produto deste repositório.
 
 import json
 import os
+import re
 import sys
 
 from agent.retrieval import load_corpus, search
@@ -37,7 +38,23 @@ def answer(question: str, docs: dict[str, str], retrieved: list[str], model: str
         system=SYSTEM % context,
         messages=[{"role": "user", "content": question}],
     )
-    return json.loads(message.content[0].text)
+    return parse(message.content[0].text)
+
+
+def parse(raw: str) -> dict:
+    """Extrai o JSON da resposta do modelo.
+
+    O modelo às vezes embrulha o JSON em cerca de markdown ou numa frase. Isso
+    é problema do agente, não do harness — e um agente que explode no parse
+    impede a avaliação de rodar, então aqui tolera as duas formas.
+    """
+    text = raw.strip()
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if not match:
+        # NAO_ENCONTRADO em texto puro é resposta válida: sem citação, o portão
+        # já reprova e o caso escala, que é o comportamento certo.
+        return {"answer": text, "cited_docs": []}
+    return json.loads(match.group(0))
 
 
 def main(question: str) -> int:
