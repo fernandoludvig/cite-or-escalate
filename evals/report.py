@@ -57,6 +57,14 @@ def _case_block(run) -> list[str]:
         ]
     else:
         lines.append("**O que barrou** nada: as três checagens passaram.")
+
+    # Só o id, nunca uma URL montada. A URL depende do backend e do projeto, e
+    # lê-la do ambiente faria o REPORT.md commitado divergir do que o teste de
+    # sincronia regenera — CI vermelho sem causa aparente. Cole o id na busca
+    # do Langfuse ou do LangSmith.
+    trace = run.response.get("trace_id")
+    if trace and (failed or not agreed):
+        lines += ["", f"**Trace** `{trace}`"]
     return lines + [""]
 
 
