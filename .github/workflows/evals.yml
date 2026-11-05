@@ -1,0 +1,21 @@
+name: evals
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest
+      # Sem ANTHROPIC_API_KEY de propósito: o portão avalia as respostas
+      # gravadas em evals/dataset/responses.jsonl, então roda de graça e dá o
+      # mesmo resultado em qualquer máquina. Gerar respostas novas é um passo
+      # manual (python -m agent.record), não parte do CI.
+      - run: pytest

@@ -1,0 +1,3 @@
+pytest>=8
+# Só para rodar o agente de brinquedo contra a API; o pytest e o CI não usam.
+# anthropic>=0.40
