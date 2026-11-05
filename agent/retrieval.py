@@ -20,6 +20,16 @@ def load_corpus(corpus_dir: Path = CORPUS_DIR) -> dict[str, str]:
 
 
 def search(query: str, docs: dict[str, str], top_k: int = 3) -> list[str]:
+    from otel import span
+
+    with span("retrieval") as active:
+        result = _bm25(query, docs, top_k)
+        if active:
+            active.set_attribute("cite.retrieved", result)
+        return result
+
+
+def _bm25(query: str, docs: dict[str, str], top_k: int) -> list[str]:
     from evals.verifiers.text import tokens  # mesma normalização dos verificadores
 
     doc_tokens = {doc_id: tokens(text) for doc_id, text in docs.items()}

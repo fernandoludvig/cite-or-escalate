@@ -18,6 +18,7 @@ from pathlib import Path
 
 from agent.retrieval import load_corpus, search
 from agent.run import MODEL, answer
+from otel import span, trace_id
 
 DATASET = Path(__file__).resolve().parent.parent / "evals" / "dataset"
 
@@ -32,8 +33,10 @@ def main(limit: int = 0) -> None:
     # dataset gravado se a chamada falhar, e aí o CI perde a referência.
     records = []
     for case in cases:
-        retrieved = search(case["question"], docs)
-        out = answer(case["question"], docs, retrieved)
+        with span("case", **{"cite.case_id": case["id"]}) as active:
+            retrieved = search(case["question"], docs)
+            out = answer(case["question"], docs, retrieved)
+            tid = trace_id(active)
         records.append(
             {
                 "id": case["id"],
@@ -41,9 +44,12 @@ def main(limit: int = 0) -> None:
                 "answer": out["answer"],
                 "cited_docs": out.get("cited_docs", []),
                 "retrieved": retrieved,
+                # Sem SDK instalado isto é string vazia: o campo existe sempre,
+                # para o relatório não precisar de dois formatos de registro.
+                "trace_id": tid,
             }
         )
-        print(f"{case['id']}: ok")
+        print(f"{case['id']}: ok{' · ' + tid if tid else ''}")
 
     target = DATASET / ("responses.jsonl" if not limit else "responses.partial.jsonl")
     target.write_text(

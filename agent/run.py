@@ -31,6 +31,11 @@ Documentos:
 def answer(question: str, docs: dict[str, str], retrieved: list[str], model: str = MODEL) -> dict:
     import anthropic  # importado aqui: pytest e o CI rodam sem a dependência
 
+    # Sem span próprio aqui de propósito: o SDK do anthropic (>=2.6) se
+    # auto-instrumenta quando acha o SDK do OTel no ambiente e emite
+    # "anthropic.messages.create" com os atributos gen_ai.* completos — request
+    # id, tokens de cache e stop_reason inclusos. Um span nosso em volta só
+    # repetiria um subconjunto disso.
     context = "\n\n".join(f"<doc id=\"{d}\">\n{docs[d]}\n</doc>" for d in retrieved)
     message = anthropic.Anthropic().messages.create(
         model=model,
@@ -58,16 +63,28 @@ def parse(raw: str) -> dict:
 
 
 def main(question: str) -> int:
+    from otel import span, trace_id
+
     docs = load_corpus()
-    retrieved = search(question, docs)
-    out = answer(question, docs, retrieved)
-    verdict = decide(out["answer"], out.get("cited_docs", []), retrieved, docs)
+    with span("case", **{"cite.question": question}) as case:
+        retrieved = search(question, docs)
+        out = answer(question, docs, retrieved)
+        # O portão ganha span próprio: é o que transforma "este caso falhou" em
+        # "aqui está a checagem que reprovou e por quê".
+        with span("gate") as gate:
+            verdict = decide(out["answer"], out.get("cited_docs", []), retrieved, docs)
+            if gate:
+                gate.set_attribute("cite.decision", verdict.decision)
+                gate.set_attribute("cite.violations", verdict.violations)
+        tid = trace_id(case)
 
     print(f"recuperado: {retrieved}")
     print(f"resposta:   {out['answer']}")
     print(f"decisão:    {verdict.decision.upper()}")
     for violation in verdict.violations:
         print(f"  - {violation}")
+    if tid:
+        print(f"trace_id:   {tid}")
     return 0
 
 

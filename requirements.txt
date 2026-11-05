@@ -1,3 +1,6 @@
 pytest>=8
 # Só para rodar o agente de brinquedo contra a API; o pytest e o CI não usam.
 # anthropic>=0.40
+# Só para ver os traces; sem isso o otel.py vira no-op e o portão roda igual.
+# opentelemetry-sdk>=1.45
+# opentelemetry-exporter-otlp-proto-http>=1.45
