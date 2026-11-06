@@ -43,7 +43,17 @@ def answer(question: str, docs: dict[str, str], retrieved: list[str], model: str
         system=SYSTEM % context,
         messages=[{"role": "user", "content": question}],
     )
-    return parse(message.content[0].text)
+    return parse(text_of(message))
+
+
+def text_of(message) -> str:
+    """Junta os blocos de texto da resposta, ignorando os de outro tipo.
+
+    Não dá para assumir `content[0].text`: o modelo às vezes devolve um
+    ThinkingBlock primeiro, e aí a indexação estoura no meio da rodada. Custou
+    24 chamadas pagas descobrir isso.
+    """
+    return "".join(block.text for block in message.content if block.type == "text")
 
 
 def parse(raw: str) -> dict:
