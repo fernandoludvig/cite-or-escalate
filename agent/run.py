@@ -39,11 +39,13 @@ def answer(question: str, docs: dict[str, str], retrieved: list[str], model: str
     context = "\n\n".join(f"<doc id=\"{d}\">\n{docs[d]}\n</doc>" for d in retrieved)
     message = anthropic.Anthropic().messages.create(
         model=model,
-        max_tokens=600,
+        # O raciocínio do modelo sai deste mesmo orçamento. Com 600, o c030
+        # pensou demais e o JSON veio cortado no meio da resposta.
+        max_tokens=2000,
         system=SYSTEM % context,
         messages=[{"role": "user", "content": question}],
     )
-    return parse(text_of(message))
+    return {**parse(text_of(message)), "stop_reason": message.stop_reason}
 
 
 def text_of(message) -> str:

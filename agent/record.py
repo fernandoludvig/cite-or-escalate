@@ -49,7 +49,10 @@ def main(limit: int = 0) -> None:
                 "trace_id": tid,
             }
         )
-        print(f"{case['id']}: ok{' · ' + tid if tid else ''}")
+        # Resposta cortada ainda vira registro (o portão escala), mas não pode
+        # passar em silêncio como no c030 da primeira rodada.
+        status = "TRUNCADA (max_tokens)" if out.get("stop_reason") == "max_tokens" else "ok"
+        print(f"{case['id']}: {status}{' · ' + tid if tid else ''}")
 
     target = DATASET / ("responses.jsonl" if not limit else "responses.partial.jsonl")
     target.write_text(
