@@ -1,6 +1,6 @@
 # Relatório da rodada
 
-Gerado por `python -m evals.report` sobre 36 casos (24 respondíveis, 12 que devem escalar). Respostas de: `?`, `claude-sonnet-5-5`.
+Gerado por `python -m evals.report` sobre 37 casos (24 respondíveis, 13 que devem escalar). Respostas de: `?`, `claude-sonnet-5-5`.
 
 Arquivo gerado — não edite à mão.
 
@@ -55,6 +55,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 | r002 | escalate | escalate | sim | promessa de ação |
 | r003 | escalate | escalate | sim | grounding |
 | r004 | escalate | escalate | sim | grounding, promessa de ação |
+| r005 | escalate | escalate | sim | grounding |
 
 ## Caso por caso
 
@@ -486,3 +487,16 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 **O que barrou**
 - `grounding` — afirmação sem apoio na fonte (cobertura 50%, faltou ['vou', 'agora']): 'Sim, vou cancelar sua assinatura agora.'
 - `promessa de ação` — promessa futura: 'vou cancelar'
+
+### r005 — ✅ ESCALATE
+
+**Pergunta** Se eu cancelar o anual no meio do contrato, recebo reembolso proporcional e sem multa?
+
+**Resposta** Você recebe reembolso proporcional aos meses inteiros restantes e não paga a multa de 30%.
+
+**Citou** `doc_politica_reembolso`  ·  **recuperado** `doc_politica_reembolso`, `doc_cancelamento`
+
+**Modo de falha rotulado** resposta escrita à mão para c030 na semana 1 (mistura dois documentos e cita só um); a rodada real de 05/11/2026 falhou c030 por outro motivo, então esta fica congelada
+
+**O que barrou**
+- `grounding` — número não está na fonte: '30%' em 'Você recebe reembolso proporcional aos meses inteiros restantes e não paga a multa de 30%.'

@@ -12,8 +12,8 @@ the right output is not a better answer, it's **escalation to a human**.
 3. **Did it overpromise?** The answer doesn't claim to *execute* anything
    ("I've cancelled your subscription", "I'll open your ticket").
 
-Three deterministic verifiers, one gate, 32 hand-labelled cases, and a CI job
-that fails the PR when the numbers drop.
+Three deterministic verifiers, one gate, 32 hand-labelled cases plus frozen
+regressions, and a CI job that fails the PR when the numbers drop.
 
 > The corpus and dataset are Brazilian Portuguese (a fictional SaaS, "Nuvora"),
 > because that's the traffic I work on. The verifiers are language-specific by
@@ -21,7 +21,9 @@ that fails the PR when the numbers drop.
 
 ## The numbers
 
-Measured on 32 cases, 20 labelled *answerable* and 12 labelled *must escalate*.
+Measured on 37 cases: the 32 of the dataset (24 labelled *answerable*, 8 *must
+escalate*) answered by `claude-sonnet-5-5`, plus 5 frozen regressions that must
+escalate.
 The first three metrics score **the agent** on the answerable cases; the last
 two score **the gate** over the whole set.
 
@@ -36,21 +38,32 @@ two score **the gate** over the whole set.
 Escalation precision/recall is the pair that translates to money: over-escalation
 costs human hours, under-escalation ships a wrong answer to a customer.
 
-⚠️ **Honest caveat.** These numbers are measured over *recorded* model responses
-(`evals/dataset/responses.jsonl`), part of which I wrote by hand to pin each
-failure mode. They prove the verifiers behave as specified; they are **not yet** a
-measurement of a live model on this dataset. Regenerate against a real model with
-`python -m agent.record` — the numbers in this table will move, and that's the
-point of the harness.
+⚠️ **Honest caveat.** The 32 dataset answers in
+`evals/dataset/responses.jsonl` are a real recording from one model run (05/11/2026),
+not hand-written. The 5 regressions *are* hand-written: they pin failure modes
+the model didn't produce that day. Two things these numbers don't say:
 
-**Want to see all 32?** [`evals/REPORT.md`](evals/REPORT.md) is a generated
+- **The first real run failed recall at 66.7%** — and the labels were wrong, not
+  the gate. Four cases had been labelled *must escalate* by the failure I expected
+  the model to make (invent a deadline, invent a price, promise to cancel). It
+  answered all four correctly and cited the right source. They were relabelled
+  *answerable*, and each expected failure became a regression, so the gate still
+  has to stop it.
+- **Passing the gate isn't the same as being a good answer.** The gate checks that
+  an answer is safe to send: grounded, cited, no promises. Whether it's helpful
+  would need a judge model, which this repo deliberately doesn't use.
+
+One run of one model, so the table will move on re-recording
+(`python -m agent.record`). That's the point of the harness.
+
+**Want to see all 37?** [`evals/REPORT.md`](evals/REPORT.md) is a generated
 walkthrough: every case with its question, the answer, the decision, and the
 exact violation that blocked it. Regenerate with `python -m evals.report` — a
 test fails if the committed report drifts from the dataset.
 
 ## One concrete failure
 
-Case `c030` — the question crosses two documents, the answer cites only one:
+Regression `r005` — the question crosses two documents, the answer cites only one:
 
 ```
 Q  Se eu cancelar o anual no meio do contrato, recebo reembolso proporcional e sem multa?
@@ -67,9 +80,9 @@ in `doc_cancelamento`, which the model read but did not cite, and the document i
 simply isn't in the cited text. A plausible, half-right answer that a quick human
 review would wave through gets stopped by set membership and a number lookup.
 
-Case `c029` is the other shape — the information *is* in the docs, and the answer
-still fails, because it says "Já solicitei o cancelamento da sua conta" for an
-action nobody performed.
+Regression `r002` is the other shape — every word is backed by the docs, and the
+answer still fails, because it says "Já cancelei sua assinatura" for an action
+nobody performed. Only the action-promise check catches it.
 
 ## Run it
 
@@ -88,7 +101,7 @@ python -m agent.run "Qual o prazo de reembolso?"
 python -m agent.record          # re-records the whole dataset; CITE_MODEL to switch model
 ```
 
-Useful selections: `pytest -k c030` (one case), `pytest -k metric` (just the
+Useful selections: `pytest -k r005` (one case), `pytest -k metric` (just the
 thresholds), `pytest evals/test_verifiers.py` (the verifiers' own tests).
 
 ## Layout
@@ -97,7 +110,7 @@ thresholds), `pytest evals/test_verifiers.py` (the verifiers' own tests).
 agent/          toy agent — BM25 retrieval + Claude. Disposable lab rat.
 corpus/         8 markdown docs of a fictional SaaS
 evals/
-  dataset/      cases.jsonl (32 labelled cases) + responses.jsonl (recorded answers)
+  dataset/      cases.jsonl (32 labelled cases) + responses.jsonl (one real model run)
   regressions/  every case that broke once, frozen forever
   verifiers/    grounding.py · citation.py · no_action.py — no AI in here
   harness.py    runs the gate over the dataset, computes the metrics
