@@ -39,6 +39,11 @@ def test_grounding_reprova_numero_certo_ligado_a_outro_fato():
     assert not result and "outro assunto" in result.violations[0]
 
 
+def test_grounding_ignora_demonstrativo():
+    # c030 real: "Essa multa não é reembolsável." escalou só pelo pronome
+    assert check_grounding("Essa multa é de rescisão.", SOURCE)
+
+
 def test_grounding_reprova_afirmacao_inteira_ausente():
     result = check_grounding("Temos aplicativo para iOS e Android.", SOURCE)
     assert not result

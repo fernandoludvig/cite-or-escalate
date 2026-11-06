@@ -17,6 +17,8 @@ STOPWORDS = frozenset(
     muito mais menos pouco todo toda todos todas cada qualquer outro outra
     outros outras mesmo mesma seu sua seus suas meu minha nosso nossa este esta
     isso aquele aquela ele ela eles elas eu voce lhe me te nos vos ser sou e
+    esse essa esses essas estes estas isto aquilo aqueles aquelas nesse nessa
+    neste nesta nisso nisto desse dessa deste desta disso disto
     sao foi era esta estao estar tem ter tenho temos ha havia pode podem poder
     deve devem dever vai vao ir fica ficam ficar faz fazem fazer ainda apenas
     somente depois antes durante desde caso entao assim porque pois logo bem
