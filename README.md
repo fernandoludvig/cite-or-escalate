@@ -167,10 +167,12 @@ Stated up front, because a harness that hides its blind spots is worse than none
 ## Roadmap
 
 - [x] Week 1 — dataset, three verifiers, pytest gate, metrics table
-- [ ] Week 2 — OpenTelemetry instrumentation exported over OTLP to Langfuse and
-      LangSmith; a trace link per failing case. *Done:* spans per case,
-      retrieval and model call, and a trace id per failing case in the report.
-      *Not yet:* an export verified in a real backend (console only so far).
+- [x] Week 2 — OpenTelemetry instrumentation exported over OTLP; spans per case,
+      retrieval, model call and gate, verified landing in Langfuse as one trace
+      with token usage. The report carries the trace id per failing case, not a
+      link (a link needs the project id, which would make the committed report
+      machine-specific). LangSmith is configured in `otel.py` but never
+      exported to.
 - [x] Week 3 — CI failing a real PR below threshold
       ([#1](https://github.com/fernandoludvig/cite-or-escalate/pull/1)), with
       the regressions folder populated from the first real model run

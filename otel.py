@@ -17,12 +17,14 @@ que torna o trace legível em qualquer um desses backends.
 
     pip install opentelemetry-sdk opentelemetry-exporter-otlp-proto-http
 
-Langfuse (confirmado na doc em 05/11/2026):
+Langfuse (exportação verificada em 09/11/2026: os quatro spans chegam num trace
+só, e a chamada ao modelo vira GENERATION com tokens; na região US o host é
+us.cloud.langfuse.com):
 
     OTEL_EXPORTER_OTLP_ENDPOINT=https://cloud.langfuse.com/api/public/otel
     OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic $(printf '%s' "$LANGFUSE_PUBLIC_KEY:$LANGFUSE_SECRET_KEY" | base64),x-langfuse-ingestion-version=4"
 
-LangSmith (idem; workspace por projeto):
+LangSmith (só conferido na doc em 05/11/2026, nunca exportado; workspace por projeto):
 
     OTEL_EXPORTER_OTLP_ENDPOINT=https://api.smith.langchain.com/otel
     OTEL_EXPORTER_OTLP_HEADERS="x-api-key=$LANGSMITH_API_KEY,Langsmith-Project=cite-or-escalate"
