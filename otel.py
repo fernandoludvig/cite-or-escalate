@@ -24,7 +24,9 @@ us.cloud.langfuse.com):
     OTEL_EXPORTER_OTLP_ENDPOINT=https://cloud.langfuse.com/api/public/otel
     OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic $(printf '%s' "$LANGFUSE_PUBLIC_KEY:$LANGFUSE_SECRET_KEY" | base64),x-langfuse-ingestion-version=4"
 
-LangSmith (só conferido na doc em 05/11/2026, nunca exportado; workspace por projeto):
+LangSmith (exportação verificada em 09/11/2026: o projeto nasce no primeiro
+trace, a chamada ao modelo vira run `llm` com tokens; o trace_id lá é um UUID
+próprio, não o hex do OTel):
 
     OTEL_EXPORTER_OTLP_ENDPOINT=https://api.smith.langchain.com/otel
     OTEL_EXPORTER_OTLP_HEADERS="x-api-key=$LANGSMITH_API_KEY,Langsmith-Project=cite-or-escalate"
