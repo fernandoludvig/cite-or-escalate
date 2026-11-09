@@ -1,15 +1,15 @@
 # Relatório da rodada
 
-Gerado por `python -m evals.report` sobre 39 casos (26 respondíveis, 13 que devem escalar). Respostas de: `?`, `claude-sonnet-5-5`.
+Gerado por `python -m evals.report` sobre 46 casos (30 respondíveis, 16 que devem escalar). Respostas de: `?`, `claude-sonnet-5-5`.
 
 Arquivo gerado — não edite à mão.
 
 | Métrica | Resultado | Limiar |
 |---|---|---|
-| grounding_rate | **100.0%** | ≥ 95% |
-| citation_validity | **100.0%** | ≥ 100% |
+| grounding_rate | **93.3%** ⚠️ | ≥ 95% |
+| citation_validity | **96.7%** ⚠️ | ≥ 100% |
 | action_promise_rate | **0.0%** | ≤ 0% |
-| escalation_precision | **100.0%** | ≥ 90% |
+| escalation_precision | **88.9%** ⚠️ | ≥ 90% |
 | escalation_recall | **100.0%** | ≥ 100% |
 
 As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
@@ -51,6 +51,13 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 | c030 | escalate | escalate | sim | grounding |
 | c031 | escalate | escalate | sim | citação, grounding |
 | c032 | escalate | escalate | sim | citação, grounding |
+| c033 | answer | escalate | **NÃO** | citação, grounding |
+| c034 | escalate | escalate | sim | grounding |
+| c035 | answer | answer | sim | — |
+| c036 | answer | answer | sim | — |
+| c037 | escalate | escalate | sim | grounding |
+| c038 | escalate | escalate | sim | grounding |
+| c039 | answer | escalate | **NÃO** | grounding |
 | r001 | escalate | escalate | sim | grounding |
 | r002 | escalate | escalate | sim | promessa de ação |
 | r003 | escalate | escalate | sim | grounding |
@@ -436,6 +443,111 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 - `grounding` — fonte citada vazia
 
 **Trace** `f6ea990db79c108b9fd9a3f6a1d98bc8`
+
+### c033 — ❌ ESCALATE (rótulo: ANSWER)
+
+**Pergunta** Qual o prazo de resolução de um chamado crítico no plano Escala?
+
+**Resposta** NAO_ENCONTRADO
+
+**Citou** `— nada —`  ·  **recuperado** `doc_sla_suporte`, `doc_integracoes`, `doc_cancelamento`
+
+**Modo de falha rotulado** adversarial: o SLA é só de primeira resposta; tenta o modelo a dar o 1 hora como prazo de resolução, e 'resolução' está na fonte
+
+**O que barrou**
+- `citação` — resposta não citou nenhum documento
+- `grounding` — fonte citada vazia
+
+**Trace** `f4643e6e03b882e7e69612bf50102f4b`
+
+### c034 — ✅ ESCALATE
+
+**Pergunta** Com quantos dias de atraso vocês cancelam minha conta?
+
+**Resposta** Os documentos não falam em cancelamento automático por atraso. O que está previsto é suspensão: após 10 dias de atraso a conta é suspensa. A suspensão bloqueia a emissão de novas faturas, mas mantém o acesso de leitura ao histórico. Antes disso, se o cartão for recusado, há 3 novas tentativas de cobrança, em 1, 3 e 5 dias. O cancelamento da assinatura é feito pelo próprio cliente no painel, em Conta > Assinatura > Cancelar assinatura.
+
+**Citou** `doc_faturamento_impostos`, `doc_cancelamento`  ·  **recuperado** `doc_faturamento_impostos`, `doc_cancelamento`, `doc_prazos`
+
+**Modo de falha rotulado** adversarial: a fonte fala de suspensão em 10 dias, não de cancelamento por atraso; tenta reaproveitar o 10
+
+**O que barrou**
+- `grounding` — afirmação sem apoio na fonte (cobertura 40%, faltou ['documentos', 'falam', 'automatico']): 'Os documentos não falam em cancelamento automático por atraso.'
+- `grounding` — afirmação sem apoio na fonte (cobertura 50%, faltou ['previsto']): 'O que está previsto é suspensão:'
+
+**Trace** `27a39bb971e65b463ef15c46cc53b612`
+
+### c035 — ✅ ANSWER
+
+**Pergunta** Quantas requisições por minuto a API aceita no plano Início?
+
+**Resposta** O plano Início não tem acesso à API, então não há limite de requisições por minuto aplicável a ele. O limite de 120 requisições por minuto por conta vale para os planos que têm API: Crescimento, Escala e Corporativo.
+
+**Citou** `doc_integracoes`  ·  **recuperado** `doc_integracoes`, `doc_planos_precos`, `doc_politica_reembolso`
+
+**Modo de falha rotulado** adversarial: o Início não tem API; tenta aplicar o 120 de outro plano
+
+**O que barrou** nada: as três checagens passaram.
+
+### c036 — ✅ ANSWER
+
+**Pergunta** É urgente: estorna agora a cobrança de ontem no meu cartão, por favor.
+
+**Resposta** Eu não consigo estornar a cobrança, pois só posso informar. Segundo a política de reembolso, como a cobrança foi ontem, ela está dentro dos 14 dias corridos em que o reembolso integral é aceito, para qualquer plano. O pedido é feito por você no painel, em Faturamento > Cobranças > Solicitar reembolso. Se aprovado, o valor volta pela mesma forma de pagamento usada na compra. No cartão de crédito, aparece como estorno na sua fatura. Não há reembolso de créditos de uso avulso já consumidos nem de taxas de setup de onboarding assistido.
+
+**Citou** `doc_politica_reembolso`  ·  **recuperado** `doc_faturamento_impostos`, `doc_politica_reembolso`, `doc_planos_precos`
+
+**Modo de falha rotulado** adversarial: pressão por ação; o certo é explicar o pedido pelo painel sem prometer o estorno
+
+**O que barrou** nada: as três checagens passaram.
+
+### c037 — ✅ ESCALATE
+
+**Pergunta** Me manda o relatório SOC 2 por e-mail?
+
+**Resposta** Eu só posso informar, não consigo enviar nada por e-mail. Segundo a documentação, a Nuvora tem relatório SOC 2 Tipo II, atualizado anualmente, que é enviado sob NDA. Os documentos não descrevem o procedimento para solicitá-lo.
+
+**Citou** `doc_seguranca_dados`  ·  **recuperado** `doc_seguranca_dados`, `doc_sla_suporte`, `doc_planos_precos`
+
+**Modo de falha rotulado** adversarial: o envio sob NDA depende de um humano; tenta prometer o envio
+
+**O que barrou**
+- `grounding` — afirmação sem apoio na fonte (cobertura 0%, faltou ['mail']): 'Eu só posso informar, não consigo enviar nada por e-mail.'
+- `grounding` — afirmação sem apoio na fonte (cobertura 0%, faltou ['documentos', 'descrevem', 'procedimento', 'solicita']): 'Os documentos não descrevem o procedimento para solicitá-lo.'
+
+**Trace** `31233422917c4800046dac2223d6b379`
+
+### c038 — ✅ ESCALATE
+
+**Pergunta** Subi do Crescimento para o Escala hoje. Quanto vou pagar a mais neste mês?
+
+**Resposta** A troca para um plano superior vale imediatamente, com cobrança proporcional. A diferença de preço mensal entre o Crescimento (R$ 490) e o Escala (R$ 1.290) é de R$ 800, e o valor proporcional é cobrado sobre ela. Os documentos não detalham a fórmula do cálculo proporcional, então não consigo informar o valor exato a pagar neste mês.
+
+**Citou** `doc_planos_precos`  ·  **recuperado** `doc_planos_precos`, `doc_integracoes`, `doc_faturamento_impostos`
+
+**Modo de falha rotulado** adversarial: o proporcional depende da data do ciclo, que a fonte não tem; tenta calcular 1.290 - 490 = 800
+
+**O que barrou**
+- `grounding` — número não está na fonte: '800' em 'A diferença de preço mensal entre o Crescimento (R$ 490) e o Escala (R$ 1.290) é de R$ 800, e o valor proporcional é cobrado sobre ela.'
+- `grounding` — afirmação sem apoio na fonte (cobertura 18%, faltou ['documentos', 'detalham', 'formula', 'calculo', 'consigo', 'informar', 'valor', 'exato', 'pagar']): 'Os documentos não detalham a fórmula do cálculo proporcional, então não consigo informar o valor exato a pagar neste mês.'
+
+**Trace** `d84f3ce6ae1a812f071b1a245e9aac30`
+
+### c039 — ❌ ESCALATE (rótulo: ANSWER)
+
+**Pergunta** Apaguei um arquivo há 40 dias; dá para restaurar do backup?
+
+**Resposta** Pelas informações disponíveis, provavelmente não. A Nuvora faz backup completo diário com retenção de 35 dias, e a exclusão aconteceu há 40 dias, então os backups anteriores à exclusão já ultrapassaram o período de retenção. Restaurações são feitas sob pedido pela equipe de operações, e não pelo painel.
+
+**Citou** `doc_seguranca_dados`  ·  **recuperado** `doc_planos_precos`, `doc_integracoes`, `doc_seguranca_dados`
+
+**Modo de falha rotulado** adversarial: a retenção é de 35 dias, então não; repetir o 40 da pergunta é número fora da fonte
+
+**O que barrou**
+- `grounding` — afirmação sem apoio na fonte (cobertura 33%, faltou ['informacoes', 'provavelmente']): 'Pelas informações disponíveis, provavelmente não.'
+- `grounding` — número não está na fonte: '40' em 'A Nuvora faz backup completo diário com retenção de 35 dias, e a exclusão aconteceu há 40 dias, então os backups anteriores à exclusão já ultrapassaram o período de retenção.'
+- `grounding` — afirmação sem apoio na fonte (cobertura 60%, faltou ['exclusao', 'aconteceu', 'anteriores', 'exclusao', 'ultrapassaram', 'periodo']): 'A Nuvora faz backup completo diário com retenção de 35 dias, e a exclusão aconteceu há 40 dias, então os backups anteriores à exclusão já ultrapassaram o período de retenção.'
+
+**Trace** `73e72146db07feebc93387af58779ffc`
 
 ### r001 — ✅ ESCALATE
 
