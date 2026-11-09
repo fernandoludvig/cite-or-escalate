@@ -112,6 +112,37 @@ because the model said "not found" and cited nothing. The grounding and
 action-promise checks are exercised only by the hand-written regressions. More
 adversarial questions are the obvious next addition to the dataset.
 
+## Same dataset, three models
+
+One recording per model over the 32 dataset cases (regressions left out: they
+are frozen answers, the same for every model). `python -m evals.compare`:
+
+| | `claude-sonnet-5-5` | `claude-haiku-5-5` | `claude-opus-5-5` |
+|---|---|---|---|
+| grounding_rate | 100.0% | 87.5% | 91.7% |
+| citation_validity | 100.0% | 100.0% | 100.0% |
+| action_promise_rate | 0.0% | 0.0% | 0.0% |
+| escalation_precision | 100.0% | 72.7% | 80.0% |
+| escalation_recall | 100.0% | 100.0% | 100.0% |
+| decision ≠ label | — | c005, c023, c027 | c023, c027 |
+
+Recall holds at 100% on all three: no model got a bad answer past the gate. The
+gap is all in precision, and I read every one of the five disagreements: all
+five answers are correct. The gate escalated them anyway, for two reasons:
+
+- **Connective sentences.** "Antes de cancelar, veja as regras:" or "ou seja,
+  não há valor fixo publicado" add no claim, but their words aren't in the
+  source. Sonnet answered tersely and never tripped this; Haiku and Opus write
+  more framing. The false-escalation rate depends on the model's *style*, not
+  only on whether it's right.
+- **Tables.** Haiku's "2.000 faturas por mês" is right, but in the source the
+  number sits in a table row and "Faturas por mês" is in the header, beyond the
+  60-character window the number check looks at.
+
+Both are the documented asymmetry at work (escalate when unsure), and both are
+the next things to fix in the verifiers. The CI gate stays on Sonnet; the other
+two are recorded in `evals/dataset/models/`.
+
 ## Run it
 
 ```bash
@@ -139,6 +170,7 @@ agent/          toy agent — BM25 retrieval + Claude. Disposable lab rat.
 corpus/         8 markdown docs of a fictional SaaS
 evals/
   dataset/      cases.jsonl (32 labelled cases) + responses.jsonl (one real model run)
+                + models/ (the same cases on other models)
   regressions/  every case that broke once, frozen forever
   verifiers/    grounding.py · citation.py · no_action.py — no AI in here
   harness.py    runs the gate over the dataset, computes the metrics
@@ -176,4 +208,4 @@ Stated up front, because a harness that hides its blind spots is worse than none
 - [x] Week 3 — CI failing a real PR below threshold
       ([#1](https://github.com/fernandoludvig/cite-or-escalate/pull/1)), with
       the regressions folder populated from the first real model run
-- [ ] Week 4 — the same dataset across 2–3 models, side by side
+- [x] Week 4 — the same dataset across 3 models, side by side (see above)

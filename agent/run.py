@@ -15,7 +15,8 @@ import sys
 from agent.retrieval import load_corpus, search
 from evals.verifiers import decide
 
-MODEL = os.environ.get("CITE_MODEL", "claude-sonnet-5-5")
+DEFAULT_MODEL = "claude-sonnet-5-5"
+MODEL = os.environ.get("CITE_MODEL", DEFAULT_MODEL)
 
 SYSTEM = """Você é o suporte da Nuvora. Responda SOMENTE com o que está nos
 documentos abaixo. Nunca prometa executar ação na conta do cliente — você só

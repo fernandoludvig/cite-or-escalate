@@ -1,9 +1,10 @@
 """Regrava evals/dataset/responses.jsonl rodando o agente nos casos do dataset.
 
 As respostas gravadas são o que o pytest avalia, então o CI roda sem chave de
-API e sem custo. Rode isto quando quiser medir um modelo novo:
+API e sem custo. Outro modelo grava em evals/dataset/models/<modelo>.jsonl, sem
+tocar no dataset do CI:
 
-    CITE_MODEL=claude-opus-5 python -m agent.record
+    CITE_MODEL=claude-haiku-5-5 python -m agent.record
 
 Com um número, grava só os N primeiros casos em responses.partial.jsonl — é o
 jeito barato de confirmar que a API e o parse funcionam antes de pagar 32
@@ -17,7 +18,7 @@ import sys
 from pathlib import Path
 
 from agent.retrieval import load_corpus, search
-from agent.run import MODEL, answer
+from agent.run import DEFAULT_MODEL, MODEL, answer
 from otel import span, trace_id
 
 DATASET = Path(__file__).resolve().parent.parent / "evals" / "dataset"
@@ -54,7 +55,15 @@ def main(limit: int = 0) -> None:
         status = "TRUNCADA (max_tokens)" if out.get("stop_reason") == "max_tokens" else "ok"
         print(f"{case['id']}: {status}{' · ' + tid if tid else ''}")
 
-    target = DATASET / ("responses.jsonl" if not limit else "responses.partial.jsonl")
+    # Só o modelo padrão regrava o dataset que o CI usa como portão; os outros
+    # vão para models/, onde só a comparação (python -m evals.compare) os lê.
+    if limit:
+        target = DATASET / "responses.partial.jsonl"
+    elif MODEL == DEFAULT_MODEL:
+        target = DATASET / "responses.jsonl"
+    else:
+        target = DATASET / "models" / f"{MODEL}.jsonl"
+        target.parent.mkdir(exist_ok=True)
     target.write_text(
         "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in records), encoding="utf-8"
     )

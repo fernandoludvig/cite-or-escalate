@@ -24,7 +24,7 @@ def _load_jsonl(path: Path) -> list[dict]:
     ]
 
 
-def load_dataset() -> tuple[list[dict], dict[str, dict]]:
+def load_dataset(responses_path: Path = DATASET / "responses.jsonl") -> tuple[list[dict], dict[str, dict]]:
     """Casos e respostas, já com a pasta de regressões incluída.
 
     Um arquivo em regressions/ traz caso e resposta no MESMO objeto — cada
@@ -32,7 +32,7 @@ def load_dataset() -> tuple[list[dict], dict[str, dict]]:
     quebrou. Ver evals/regressions/README.md.
     """
     cases = _load_jsonl(DATASET / "cases.jsonl")
-    responses = {r["id"]: r for r in _load_jsonl(DATASET / "responses.jsonl")}
+    responses = {r["id"]: r for r in _load_jsonl(responses_path)}
 
     for path in sorted(REGRESSIONS.glob("*.jsonl")):
         for row in _load_jsonl(path):
@@ -61,9 +61,9 @@ class Run:
         return self.verdict.decision
 
 
-def evaluate() -> list[Run]:
+def evaluate(responses_path: Path = DATASET / "responses.jsonl") -> list[Run]:
     docs = load_corpus()
-    cases, responses = load_dataset()
+    cases, responses = load_dataset(responses_path)
     runs = []
     for case in cases:
         response = responses.get(case["id"])
