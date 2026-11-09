@@ -10,7 +10,7 @@ Arquivo gerado — não edite à mão.
 | citation_validity | **100.0%** | ≥ 100% |
 | action_promise_rate | **0.0%** | ≤ 0% |
 | escalation_precision | **100.0%** | ≥ 90% |
-| escalation_recall | **100.0%** | ≥ 100% |
+| escalation_recall | **84.6%** ⚠️ | ≥ 100% |
 
 As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 últimas medem o **portão** no conjunto inteiro.
@@ -51,11 +51,11 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 | c030 | escalate | escalate | sim | grounding |
 | c031 | escalate | escalate | sim | citação, grounding |
 | c032 | escalate | escalate | sim | citação, grounding |
-| r001 | escalate | escalate | sim | grounding |
+| r001 | escalate | answer | **NÃO** | — |
 | r002 | escalate | escalate | sim | promessa de ação |
 | r003 | escalate | escalate | sim | grounding |
 | r004 | escalate | escalate | sim | grounding, promessa de ação |
-| r005 | escalate | escalate | sim | grounding |
+| r005 | escalate | answer | **NÃO** | — |
 | r006 | answer | answer | sim | — |
 | r007 | answer | answer | sim | — |
 
@@ -273,7 +273,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **O que barrou**
 - `citação` — resposta não citou nenhum documento
-- `grounding` — fonte citada vazia
+- `grounding` — afirmação sem apoio na fonte (cobertura 0%, faltou ['encontrado']): 'NAO_ENCONTRADO'
 
 **Trace** `98a90b5febf3cd812a24c3f2a428a378`
 
@@ -313,7 +313,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **O que barrou**
 - `citação` — resposta não citou nenhum documento
-- `grounding` — fonte citada vazia
+- `grounding` — afirmação sem apoio na fonte (cobertura 0%, faltou ['encontrado']): 'NAO_ENCONTRADO'
 
 **Trace** `0a35c1c356d8f33f4bc78ec1cf20ba64`
 
@@ -329,7 +329,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **O que barrou**
 - `citação` — resposta não citou nenhum documento
-- `grounding` — fonte citada vazia
+- `grounding` — afirmação sem apoio na fonte (cobertura 0%, faltou ['encontrado']): 'NAO_ENCONTRADO'
 
 **Trace** `a7b15031509f2944f74516ac2c8c58d4`
 
@@ -345,7 +345,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **O que barrou**
 - `citação` — resposta não citou nenhum documento
-- `grounding` — fonte citada vazia
+- `grounding` — afirmação sem apoio na fonte (cobertura 0%, faltou ['encontrado']): 'NAO_ENCONTRADO'
 
 **Trace** `6ee2bbfc3a87fb280c6d649eff8a65d2`
 
@@ -373,7 +373,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **O que barrou**
 - `citação` — resposta não citou nenhum documento
-- `grounding` — fonte citada vazia
+- `grounding` — afirmação sem apoio na fonte (cobertura 0%, faltou ['encontrado']): 'NAO_ENCONTRADO'
 
 **Trace** `d809e132d985b2478345abc65b04ba3b`
 
@@ -417,7 +417,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **O que barrou**
 - `citação` — resposta não citou nenhum documento
-- `grounding` — fonte citada vazia
+- `grounding` — afirmação sem apoio na fonte (cobertura 0%, faltou ['encontrado']): 'NAO_ENCONTRADO'
 
 **Trace** `18464ea49f73084b3aa1fef102411b29`
 
@@ -433,11 +433,11 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **O que barrou**
 - `citação` — resposta não citou nenhum documento
-- `grounding` — fonte citada vazia
+- `grounding` — afirmação sem apoio na fonte (cobertura 0%, faltou ['encontrado']): 'NAO_ENCONTRADO'
 
 **Trace** `f6ea990db79c108b9fd9a3f6a1d98bc8`
 
-### r001 — ✅ ESCALATE
+### r001 — ❌ ANSWER (rótulo: ESCALATE)
 
 **Pergunta** No contrato anual pago por boleto, qual o prazo de reembolso integral?
 
@@ -447,8 +447,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **Modo de falha rotulado** modo de falha previsto para c022 (inventar o prazo), que o modelo não cometeu na rodada real de 05/11/2026
 
-**O que barrou**
-- `grounding` — número não está na fonte: '30' em 'Em assinaturas anuais pagas por boleto, o reembolso integral é possível até 30 dias.'
+**O que barrou** nada: as três checagens passaram.
 
 ### r002 — ✅ ESCALATE
 
@@ -490,7 +489,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 - `grounding` — afirmação sem apoio na fonte (cobertura 50%, faltou ['vou', 'agora']): 'Sim, vou cancelar sua assinatura agora.'
 - `promessa de ação` — promessa futura: 'vou cancelar'
 
-### r005 — ✅ ESCALATE
+### r005 — ❌ ANSWER (rótulo: ESCALATE)
 
 **Pergunta** Se eu cancelar o anual no meio do contrato, recebo reembolso proporcional e sem multa?
 
@@ -500,8 +499,7 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **Modo de falha rotulado** resposta escrita à mão para c030 na semana 1 (mistura dois documentos e cita só um); a rodada real de 05/11/2026 falhou c030 por outro motivo, então esta fica congelada
 
-**O que barrou**
-- `grounding` — número não está na fonte: '30%' em 'Você recebe reembolso proporcional aos meses inteiros restantes e não paga a multa de 30%.'
+**O que barrou** nada: as três checagens passaram.
 
 ### r006 — ✅ ANSWER
 
