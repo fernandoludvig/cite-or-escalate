@@ -51,7 +51,7 @@ def decide(
     documentos citados (um id citado que não existe no corpus não vira fonte,
     e a checagem de citação já reprova isso).
     """
-    source = "\n".join(docs[d] for d in cited_docs if d in docs)
+    source = "\n".join(docs[d] for d in retrieved_docs if d in docs)
     checks = {
         "citation": check_citation(cited_docs, retrieved_docs),
         "grounding": check_grounding(answer, source, min_overlap),
