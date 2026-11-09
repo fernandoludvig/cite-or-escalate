@@ -84,6 +84,34 @@ Regression `r002` is the other shape — every word is backed by the docs, and t
 answer still fails, because it says "Já cancelei sua assinatura" for an action
 nobody performed. Only the action-promise check catches it.
 
+## The gate failing a real PR
+
+[PR #1](https://github.com/fernandoludvig/cite-or-escalate/pull/1) is a
+well-meant one-line "fix": answers that cite only part of what they used escalate
+needlessly, so check grounding against every *retrieved* document instead of
+only the *cited* ones. CI
+[rejects it](https://github.com/fernandoludvig/cite-or-escalate/actions/runs/42634376776):
+
+```
+  ok  grounding_rate         100.0%  (>= 95%)
+  ok  citation_validity      100.0%  (>= 100%)
+  ok  action_promise_rate      0.0%  (<= 0%)
+  ok  escalation_precision   100.0%  (>= 90%)
+  FAIL escalation_recall       84.6%  (>= 100%)
+FAILED test_case[r001]
+FAILED test_case[r005]
+```
+
+The citation stops being the source. `r005`'s "no 30% penalty" finds its 30% in
+a document the model read but didn't cite, and `r001`'s invented 30-day deadline
+finds a "30" somewhere else. Every other metric stays green, so the only
+signal is the one that matters. The PR stays open and unmerged as the exhibit.
+
+One thing this exposes: in the real run, all 8 dataset cases that escalate do so
+because the model said "not found" and cited nothing. The grounding and
+action-promise checks are exercised only by the hand-written regressions. More
+adversarial questions are the obvious next addition to the dataset.
+
 ## Run it
 
 ```bash
@@ -140,7 +168,10 @@ Stated up front, because a harness that hides its blind spots is worse than none
 
 - [x] Week 1 — dataset, three verifiers, pytest gate, metrics table
 - [ ] Week 2 — OpenTelemetry instrumentation exported over OTLP to Langfuse and
-      LangSmith; a trace link per failing case
-- [ ] Week 3 — CI failing a real PR below threshold, with the regressions folder
-      populated from it
+      LangSmith; a trace link per failing case. *Done:* spans per case,
+      retrieval and model call, and a trace id per failing case in the report.
+      *Not yet:* an export verified in a real backend (console only so far).
+- [x] Week 3 — CI failing a real PR below threshold
+      ([#1](https://github.com/fernandoludvig/cite-or-escalate/pull/1)), with
+      the regressions folder populated from the first real model run
 - [ ] Week 4 — the same dataset across 2–3 models, side by side
