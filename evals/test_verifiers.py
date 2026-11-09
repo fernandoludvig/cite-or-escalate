@@ -76,6 +76,26 @@ def test_grounding_ignora_marcador_de_lista_numerado(marker):
     assert check_grounding(f"{marker}A multa de rescisão antecipada é de 30%.", SOURCE)
 
 
+def test_grounding_ignora_frase_em_que_o_agente_declara_o_proprio_limite():
+    # c036 real (Sonnet): dizer que não executa ação é o comportamento desejado
+    answer = "Eu não consigo estornar a cobrança, pois só posso informar. A multa de rescisão antecipada é de 30%."
+    assert check_grounding(answer, SOURCE)
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        # admitir lacuna da fonte não é limite do agente: é o que segura c034/c037
+        "Não consigo informar o valor exato do reembolso.",
+        # o resto da frase depois do limite continua cobrado
+        "Não consigo cancelar, mas temos aplicativo para iOS.",
+        "Não posso cancelar porque temos aplicativo para iOS.",
+    ],
+)
+def test_grounding_limite_nao_esconde_afirmacao(answer):
+    assert not check_grounding(answer, SOURCE)
+
+
 TABLE = """| Plano | Preço mensal | Faturas por mês |
 |---|---|---|
 | Início | R$ 149 | 200 |

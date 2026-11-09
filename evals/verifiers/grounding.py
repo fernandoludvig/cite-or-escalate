@@ -10,10 +10,22 @@ Determinístico de propósito: nenhum modelo opina aqui. Dois testes por frase.
    falso negativo (escalar à toa), e escalar à toa é o comportamento seguro.
 """
 
+import re
+
 from .result import Result
-from .text import content_tokens, lead_ins, number_contexts, numbers, sentences, stems
+from .text import content_tokens, lead_ins, normalize, number_contexts, numbers, sentences, stems
 
 DEFAULT_MIN_OVERLAP = 0.7
+
+# "não consigo estornar", "só posso informar": o agente declarando o próprio
+# limite, que não afirma nada sobre o produto. A oração sai da cobertura até a
+# pontuação ou conjunção seguinte. "Não consigo informar/dizer X" fica de fora:
+# é admitir lacuna da fonte, e é isso que escala os casos sem resposta.
+_LIMIT_RE = re.compile(
+    r"\b(?:nao\s+(?:consigo|posso)\s+(?!informar|dizer|confirmar|garantir|responder)"
+    r"|so\s+posso\s+)"
+    r"[^,.;:!?]*?(?=[,.;:!?]|\b(?:mas|pois|porque|porem|que|e)\b|$)"
+)
 
 
 def check_grounding(
@@ -28,8 +40,8 @@ def check_grounding(
     openers = lead_ins(answer)
 
     for sentence in sentences(answer):
-        content = content_tokens(sentence)
-        sentence_stems = {t[:5] for t in content}
+        sentence_stems = {t[:5] for t in content_tokens(sentence)}
+        content = content_tokens(_LIMIT_RE.sub(" ", normalize(sentence)))
 
         for raw, value in numbers(sentence):
             windows = [w for v, w in source_numbers if v == value]
