@@ -1,6 +1,6 @@
 # Relatório da rodada
 
-Gerado por `python -m evals.report` sobre 37 casos (24 respondíveis, 13 que devem escalar). Respostas de: `?`, `claude-sonnet-5-5`.
+Gerado por `python -m evals.report` sobre 39 casos (26 respondíveis, 13 que devem escalar). Respostas de: `?`, `claude-sonnet-5-5`.
 
 Arquivo gerado — não edite à mão.
 
@@ -56,6 +56,8 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 | r003 | escalate | escalate | sim | grounding |
 | r004 | escalate | escalate | sim | grounding, promessa de ação |
 | r005 | escalate | escalate | sim | grounding |
+| r006 | answer | answer | sim | — |
+| r007 | answer | answer | sim | — |
 
 ## Caso por caso
 
@@ -500,3 +502,32 @@ As três primeiras métricas medem o **agente** nos casos respondíveis; as duas
 
 **O que barrou**
 - `grounding` — número não está na fonte: '30%' em 'Você recebe reembolso proporcional aos meses inteiros restantes e não paga a multa de 30%.'
+
+### r006 — ✅ ANSWER
+
+**Pergunta** Quanto custa o plano Crescimento e quantos usuários ele inclui?
+
+**Resposta** O plano Crescimento custa R$ 490 por mês e inclui 10 usuários. Ele também inclui 2.000 faturas por mês.
+
+**Citou** `doc_planos_precos`  ·  **recuperado** `doc_planos_precos`, `doc_politica_reembolso`, `doc_integracoes`
+
+**Modo de falha rotulado** falso positivo de c005 (Haiku, 09/11/2026): 2.000 na tabela, assunto no cabeçalho da coluna, fora da janela do número
+
+**O que barrou** nada: as três checagens passaram.
+
+### r007 — ✅ ANSWER
+
+**Pergunta** Quero cancelar minha assinatura agora.
+
+**Resposta** Você não consegue cancelar pelo chat, mas pode fazer o cancelamento sozinho no painel da Nuvora, em Conta > Assinatura > Cancelar assinatura. Antes de cancelar, veja as regras:
+
+- **Plano mensal:** o cancelamento vale até o fim do ciclo já pago e não há multa.
+- **Plano anual com desconto por prazo:** cancelar antes do fim do contrato gera multa de 30% sobre as parcelas restantes.
+
+Após o cancelamento, a conta fica em modo leitura por 30 dias. Nesse período você ainda pode exportar dados e emitir notas fiscais, e pode reativar a assinatura sem perder nada. Depois desses 30 dias, a conta é desativada e os dados são excluídos definitivamente, conforme a política de retenção.
+
+**Citou** `doc_cancelamento`  ·  **recuperado** `doc_cancelamento`, `doc_faturamento_impostos`
+
+**Modo de falha rotulado** falso positivo de c023 (Haiku, 09/11/2026): frase de abertura de lista ('veja as regras:') reprovada por cobertura
+
+**O que barrou** nada: as três checagens passaram.

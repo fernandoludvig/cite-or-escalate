@@ -55,8 +55,26 @@ def content_tokens(text: str) -> list[str]:
     ]
 
 
+# "(1) ", "1. ", "2) " no começo da frase: numeração de lista, não afirmação.
+# Até 2 dígitos e espaço/fim depois, para não comer "1.290" nem "30 dias".
+_MARKER_RE = re.compile(r"^\(?\d{1,2}[).](?:\s+|$)")
+# frase terminada em ":" seguida de item de lista na linha de baixo
+_LEAD_IN_RE = re.compile(r"([^\n.!?;:]+:)[ \t]*\n\s*(?:[-*•]|\(?\d{1,2}[).])\s")
+
+
 def sentences(text: str) -> list[str]:
-    return [s.strip() for s in _SENT_RE.split(text) if s.strip()]
+    out = (_MARKER_RE.sub("", s.strip()) for s in _SENT_RE.split(text))
+    return [s for s in out if s]
+
+
+def lead_ins(text: str) -> set[str]:
+    """Frases que só abrem uma lista ("Antes de cancelar, veja as regras:").
+
+    shortcut: dispensa a cobertura de qualquer frase nessa posição, então uma
+    invenção curta antes de lista passa se não tiver número; se aparecer caso
+    real assim, trocar por limite de palavras de conteúdo na abertura.
+    """
+    return {m.group(1).strip() for m in _LEAD_IN_RE.finditer(text)}
 
 
 def numbers(text: str) -> list[tuple[str, float]]:
@@ -77,15 +95,33 @@ def number_contexts(text: str) -> list[tuple[float, set[str]]]:
 
     Existe porque "30" sozinho não prova nada: a fonte pode ter 30 na multa e a
     resposta falar de 30 dias. O número precisa estar perto do assunto.
+
+    Em linha de tabela markdown, o assunto costuma estar no cabeçalho da coluna,
+    longe demais para a janela; por isso a coluna soma os stems do cabeçalho.
     """
     norm = normalize(text)
     out = []
-    for match in _NUM_RE.finditer(norm):
-        value = _to_float(match.group(0))
-        if value is None:
-            continue
-        window = norm[max(0, match.start() - CONTEXT_CHARS) : match.end() + CONTEXT_CHARS]
-        out.append((value, stems(window)))
+    header: list[str] | None = None
+    pos = 0
+    for line in norm.splitlines(keepends=True):
+        row = line.strip()
+        is_row = row.startswith("|")
+        if not is_row:
+            header = None
+        for match in _NUM_RE.finditer(line):
+            value = _to_float(match.group(0))
+            if value is None:
+                continue
+            start, end = pos + match.start(), pos + match.end()
+            window = stems(norm[max(0, start - CONTEXT_CHARS) : end + CONTEXT_CHARS])
+            if is_row and header:
+                col = line[: match.start()].count("|") - 1
+                if 0 <= col < len(header):
+                    window |= stems(header[col])
+            out.append((value, window))
+        if is_row and header is None:
+            header = row.strip("|").split("|")
+        pos += len(line)
     return out
 
 

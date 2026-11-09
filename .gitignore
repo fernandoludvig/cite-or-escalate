@@ -5,3 +5,5 @@ __pycache__/
 .env
 # artefato do modo de 1 caso (python -m agent.record N): diagnóstico, não dataset
 evals/dataset/responses.partial.jsonl
+# notas locais de sessão
+HANDOFF.md

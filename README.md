@@ -21,9 +21,9 @@ regressions, and a CI job that fails the PR when the numbers drop.
 
 ## The numbers
 
-Measured on 37 cases: the 32 of the dataset (24 labelled *answerable*, 8 *must
-escalate*) answered by `claude-sonnet-5-5`, plus 5 frozen regressions that must
-escalate.
+Measured on 39 cases: the 32 of the dataset (24 labelled *answerable*, 8 *must
+escalate*) answered by `claude-sonnet-5-5`, plus 7 frozen regressions (5 that
+must escalate, 2 correct answers the gate once escalated by mistake).
 The first three metrics score **the agent** on the answerable cases; the last
 two score **the gate** over the whole set.
 
@@ -56,7 +56,7 @@ the model didn't produce that day. Two things these numbers don't say:
 One run of one model, so the table will move on re-recording
 (`python -m agent.record`). That's the point of the harness.
 
-**Want to see all 37?** [`evals/REPORT.md`](evals/REPORT.md) is a generated
+**Want to see all 39?** [`evals/REPORT.md`](evals/REPORT.md) is a generated
 walkthrough: every case with its question, the answer, the decision, and the
 exact violation that blocked it. Regenerate with `python -m evals.report` — a
 test fails if the committed report drifts from the dataset.
@@ -119,29 +119,42 @@ are frozen answers, the same for every model). `python -m evals.compare`:
 
 | | `claude-sonnet-5-5` | `claude-haiku-5-5` | `claude-opus-5-5` |
 |---|---|---|---|
-| grounding_rate | 100.0% | 87.5% | 91.7% |
+| grounding_rate | 100.0% | 95.8% | 95.8% |
 | citation_validity | 100.0% | 100.0% | 100.0% |
 | action_promise_rate | 0.0% | 0.0% | 0.0% |
-| escalation_precision | 100.0% | 72.7% | 80.0% |
+| escalation_precision | 100.0% | 88.9% | 88.9% |
 | escalation_recall | 100.0% | 100.0% | 100.0% |
-| decision ≠ label | — | c005, c023, c027 | c023, c027 |
+| decision ≠ label | — | c027 | c027 |
 
 Recall holds at 100% on all three: no model got a bad answer past the gate. The
-gap is all in precision, and I read every one of the five disagreements: all
-five answers are correct. The gate escalated them anyway, for two reasons:
+gap is all in precision. The first recording had five disagreements (precision
+72.7% on Haiku, 80% on Opus), and I read every one: all five answers were
+correct. The gate escalated them for three reasons, two of them now fixed:
 
-- **Connective sentences.** "Antes de cancelar, veja as regras:" or "ou seja,
-  não há valor fixo publicado" add no claim, but their words aren't in the
-  source. Sonnet answered tersely and never tripped this; Haiku and Opus write
-  more framing. The false-escalation rate depends on the model's *style*, not
-  only on whether it's right.
-- **Tables.** Haiku's "2.000 faturas por mês" is right, but in the source the
-  number sits in a table row and "Faturas por mês" is in the header, beyond the
-  60-character window the number check looks at.
+- **List lead-ins** (fixed). "Antes de cancelar, veja as regras:" makes no
+  claim, but its words aren't in the source. A sentence ending in `:` right
+  before a list item now skips the vocabulary check; its numbers are still
+  checked. Numbered list markers ("(1) ", "2. ") no longer count as numbers.
+- **Tables** (fixed). Haiku's "2.000 faturas por mês" is right, but the number
+  sits in a table row and "Faturas por mês" in the header, beyond the
+  60-character window. A number in a table row now also carries its column
+  header. The window itself stayed at 60: widening it is what would let a
+  number borrow a subject from another paragraph (r001).
+- **Paraphrase** (open, c027). "ou seja, não há valor fixo publicado" restates
+  "sob consulta" in words the source doesn't use. Vocabulary overlap can't see
+  that, and loosening it costs recall.
 
-Both are the documented asymmetry at work (escalate when unsure), and both are
-the next things to fix in the verifiers. The CI gate stays on Sonnet; the other
-two are recorded in `evals/dataset/models/`.
+The fixed cases are frozen as regressions with `expected: "answer"` (r006,
+r007), so the CI now fails on lost precision too, not only on lost recall.
+Sonnet answered tersely and never tripped any of this; Haiku and Opus write more
+framing. The false-escalation rate depends on the model's *style*, not only on
+whether it's right.
+
+One answer passes that shouldn't: Opus's c023 ends with "recomendamos exportar
+seus dados antes do fim do prazo", which isn't in the source. Three of its four
+content words are, so the vocabulary check lets it through. That's the limit
+described under *Limitations*, now visible on a real answer. The CI gate stays
+on Sonnet; the other two are recorded in `evals/dataset/models/`.
 
 ## Run it
 

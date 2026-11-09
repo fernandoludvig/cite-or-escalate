@@ -11,7 +11,7 @@ Determinístico de propósito: nenhum modelo opina aqui. Dois testes por frase.
 """
 
 from .result import Result
-from .text import content_tokens, number_contexts, numbers, sentences, stems
+from .text import content_tokens, lead_ins, number_contexts, numbers, sentences, stems
 
 DEFAULT_MIN_OVERLAP = 0.7
 
@@ -25,6 +25,7 @@ def check_grounding(
     source_stems = stems(source)
     source_numbers = number_contexts(source)
     violations: list[str] = []
+    openers = lead_ins(answer)
 
     for sentence in sentences(answer):
         content = content_tokens(sentence)
@@ -40,7 +41,8 @@ def check_grounding(
                     f"{raw!r} em {sentence!r}"
                 )
 
-        if not content:
+        # abertura de lista não afirma nada: só o número dela é cobrado
+        if not content or sentence in openers:
             continue
         missing = [t for t in content if t[:5] not in source_stems]
         coverage = 1 - len(missing) / len(content)

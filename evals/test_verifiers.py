@@ -54,6 +54,43 @@ def test_grounding_normaliza_separador_de_milhar():
     assert not check_grounding("O plano custa R$ 1.291.", SOURCE)
 
 
+def test_grounding_ignora_frase_que_so_abre_lista():
+    # c023 real (Haiku e Opus): a frase de abertura não afirma nada; os itens sim
+    answer = "Antes de cancelar, veja as regras:\n\n- A multa de rescisão antecipada é de 30%."
+    assert check_grounding(answer, SOURCE)
+
+
+def test_grounding_checa_frase_com_dois_pontos_sem_lista():
+    # só a abertura de lista é dispensada; afirmação inventada com ":" no fim, não
+    assert not check_grounding("Temos aplicativo para iOS: veja na loja.", SOURCE)
+
+
+def test_grounding_mantem_numero_na_abertura_de_lista():
+    result = check_grounding("A multa é de 45%:\n- sobre as parcelas restantes.", SOURCE)
+    assert not result and "45" in result.violations[0]
+
+
+@pytest.mark.parametrize("marker", ["(1) ", "1. ", "2) "])
+def test_grounding_ignora_marcador_de_lista_numerado(marker):
+    # Sonnet real: "(1) Para pedir:" reprovou o "1" como número fora da fonte
+    assert check_grounding(f"{marker}A multa de rescisão antecipada é de 30%.", SOURCE)
+
+
+TABLE = """| Plano | Preço mensal | Faturas por mês |
+|---|---|---|
+| Início | R$ 149 | 200 |
+| Crescimento | R$ 490 | 2.000 |"""
+
+
+def test_grounding_liga_numero_de_tabela_ao_cabecalho_da_coluna():
+    # c005 real (Haiku): o assunto do 2.000 está no cabeçalho, fora da janela
+    assert check_grounding("Ele tem 2.000 faturas por mês.", TABLE)
+
+
+def test_grounding_cabecalho_nao_empresta_assunto_de_outra_coluna():
+    assert not check_grounding("O plano custa R$ 2.000 mensal.", TABLE)
+
+
 def test_grounding_reprova_fonte_vazia():
     assert not check_grounding("Qualquer coisa.", "   ")
 
