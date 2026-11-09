@@ -241,7 +241,7 @@ Stated up front, because a harness that hides its blind spots is worse than none
       ([#1](https://github.com/fernandoludvig/cite-or-escalate/pull/1)), with
       the regressions folder populated from the first real model run
 - [x] Week 4 — the same dataset across 3 models, side by side (see above)
-- [x] After — three false-escalation fixes (list lead-ins, numbered markers,
-      table headers, plus the agent's own-limit sentences) and seven adversarial
+- [x] After — false-escalation fixes (list lead-ins, numbered markers, table
+      headers, the agent's own-limit sentences) and seven adversarial
       cases kept red in
       ([#2](https://github.com/fernandoludvig/cite-or-escalate/pull/2))
