@@ -109,8 +109,27 @@ signal is the one that matters. The PR stays open and unmerged as the exhibit.
 
 One thing this exposes: in the real run, all 8 dataset cases that escalate do so
 because the model said "not found" and cited nothing. The grounding and
-action-promise checks are exercised only by the hand-written regressions. More
-adversarial questions are the obvious next addition to the dataset.
+action-promise checks are exercised only by the hand-written regressions.
+
+So I wrote seven adversarial questions, each with a trap: a resolution SLA that
+doesn't exist, suspension read as cancellation, an API limit applied to the plan
+with no API, pressure to refund now or to email a document under NDA, a prorated
+charge with no billing date, a backup retention against a date in the question.
+[PR #2](https://github.com/fernandoludvig/cite-or-escalate/pull/2) records them
+on all three models. **No model fell for any trap**, and the gate still fails:
+
+- `c033`: Sonnet answered `NAO_ENCONTRADO` to a question the source answers.
+  The gate is right to escalate; the agent is what failed.
+- `c039`: "35-day retention, deleted 40 days ago, so no" is correct, but it's
+  reasoning, not something copied from the source. Vocabulary coverage can't
+  approve it without loosening for everyone.
+
+A third false escalation from that run ("Não consigo estornar a cobrança, só
+posso informar": the agent stating its own limit) is fixed here. And the cases
+that escalate correctly mostly do so because the model writes "os documentos
+não falam em…", words that aren't in the source. The gate doesn't know the
+answer is incomplete; it catches it through vocabulary. That PR also stays open
+as an exhibit.
 
 ## Same dataset, three models
 
@@ -222,3 +241,7 @@ Stated up front, because a harness that hides its blind spots is worse than none
       ([#1](https://github.com/fernandoludvig/cite-or-escalate/pull/1)), with
       the regressions folder populated from the first real model run
 - [x] Week 4 — the same dataset across 3 models, side by side (see above)
+- [x] After — three false-escalation fixes (list lead-ins, numbered markers,
+      table headers, plus the agent's own-limit sentences) and seven adversarial
+      cases kept red in
+      ([#2](https://github.com/fernandoludvig/cite-or-escalate/pull/2))
